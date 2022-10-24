@@ -102,6 +102,8 @@ export default function Post() {
             {post.description.length}/300
           </p>
         </div>
+
+        {/* ADD: loading state here */}
         <button
           type="submit"
           className="w-full bg-cyan-600 text-white font-medium p-2 my-2 rounded-lg text-sm"

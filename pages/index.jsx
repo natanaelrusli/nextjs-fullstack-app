@@ -5,24 +5,35 @@ import { useEffect, useState } from 'react'
 import Message from '../components/message'
 import { db } from '../utils/firebase'
 
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
+
 export default function Home() {
   // create a state with all the posts
-  const [allPosts, setAllPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState({});
 
   const getPosts = async () => {
+    setAllPosts({
+      data: [],
+      loading: true
+    })
     const collectionRef = collection(db, 'posts');
     const q = query(collectionRef, orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setAllPosts(snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      })));
+    const unsubscribe = await onSnapshot(q, (snapshot) => {
+      setAllPosts({
+        data: snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        })),
+        loading: false
+      })
     });
     return unsubscribe;
   }
 
   useEffect(() => {
     getPosts();
+    console.log(allPosts);
   }, []);
 
   return (
@@ -36,7 +47,16 @@ export default function Home() {
       <div className='my-12 text-lg font-medium'>
         <h2>See what other people are saying</h2>
         {
-          allPosts.map((post) => (
+          allPosts.loading && (
+            <div className='mt-4'>
+              <Skeleton style={{marginBottom: '20px'}} height={'200px'} />
+              <Skeleton style={{marginBottom: '20px'}} height={'200px'} />
+              <Skeleton style={{marginBottom: '20px'}} height={'200px'} />
+            </div>
+          )
+        }
+        {
+          allPosts.data?.map((post) => (
             <Message key={post.id} {...post}>
               <Link href={{pathname: `/${post.id}`, query: {...post}}}>
                 <button>
